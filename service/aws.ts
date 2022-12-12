@@ -1,6 +1,7 @@
-import S3, {ListObjectsV2Output, ManagedUpload} from 'aws-sdk/clients/s3';
+import S3, {GetObjectOutput, ListObjectsV2Output, ManagedUpload} from 'aws-sdk/clients/s3';
 import {NextApiResponse} from "next";
 import fs from 'fs';
+import {AWSError} from "aws-sdk";
 
 
 
@@ -34,12 +35,28 @@ class Storage {
 
     getObjects = async (res:NextApiResponse):Promise<void> => {
         const bucket = this.#bucketName();
-        await this.#storage?.listObjectsV2(bucket, async function(err, data) {
+        await this.#storage?.listObjectsV2(bucket, async (err, data) => {
             if(err) {
                 return res.status(500).json({error: err.message, name: err.name});
             }
             res.status(200).json({data})
         })
+    }
+
+    getObject = async (key: string, done: (err: AWSError | null, data: GetObjectOutput | null) => void):Promise<void> => {
+        const bucket = this.#bucketName();
+        await this.#storage?.getObject({...bucket, Key: key}, (err, data) => {
+            if(err) return done(err, null);
+            done(null, data);
+        })
+    }
+
+    getInfo = () => {
+        return {
+            bucketName: this.#bucketName().Bucket,
+            accessKey: process.env.AWS_ACCESS_KEY!,
+            secretKey: process.env.AWS_SECRET_KEY!
+        }
     }
 }
 
