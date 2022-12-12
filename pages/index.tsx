@@ -3,12 +3,12 @@ import Header from "../components/Header/Header";
 import {FormEvent, SyntheticEvent, useState} from "react";
 import {NextPageContext} from "next";
 import {CodecConfiguration, PaginationResponse} from "@bitmovin/api-sdk";
+import Configuration from "../components/Configuration/Configuration";
 
 interface HomeProps {
     configuration: PaginationResponse<CodecConfiguration>;
 }
 export default function Home({configuration}: HomeProps) {
-    console.log(configuration, '===');
     const [file, setFile] = useState<File | undefined>(undefined);
     const onChangeEvent = (e: SyntheticEvent<HTMLInputElement>) => {
         const target = e.target as HTMLInputElement;
@@ -41,7 +41,7 @@ export default function Home({configuration}: HomeProps) {
             </div>
 
             <div className={styles.configurations}>
-
+                <Configuration items={configuration.items as CodecConfiguration[]}/>
             </div>
 
       </main>
@@ -51,6 +51,6 @@ export default function Home({configuration}: HomeProps) {
 
 Home.getInitialProps = async (ctx: NextPageContext) => {
     const res = await fetch('http://localhost:3000/api/configurations');
-    const configuration = await res.json() as PaginationResponse<CodecConfiguration>;
-    return {configuration};
+    const response = await res.json() as {status: string, info: PaginationResponse<CodecConfiguration>};
+    return {configuration: response.info};
 }
